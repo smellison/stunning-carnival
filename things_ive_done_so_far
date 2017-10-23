@@ -9,6 +9,8 @@ network={
   psk="donttrythisathome"
 }
 
+maybe just reboot the pi and it will connect afterward
+
 sudo wpa_cli reconfigure
 
 == Installing WiringPi
@@ -22,3 +24,11 @@ TODO:
 GET WIRING PI AND SOME OTHER SHIT ON HERE
 TRY OUT BROADCASTING AN ADHOC NETWORK
 dtoverlay=spi1-3cs
+
+
+
+I reflashed the pi SD card with a fresh raspbian jessie
+I then did a few basic setup things and then backed up the rpi sd card onto the desktop (so clone from that now)
+I now have done the wiringPi setup from projects.drogon.net/raspberry-pi/wiringpi/download-and-install
+gpio spi load still fails
+
