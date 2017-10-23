@@ -1,0 +1,24 @@
+== Manually connecting to the internet:
+sudo iwlist wlan0 scan
+and then search for essid fields
+
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+and add at bottom:
+network={
+  ssid="holmes"
+  psk="donttrythisathome"
+}
+
+sudo wpa_cli reconfigure
+
+== Installing WiringPi
+sudo apt-get install python-pip python-dev build-essential
+sudo pip install --upgrade pip
+sudo pip install --upgrade virtualenv
+
+pip install wiringpi
+
+TODO:
+GET WIRING PI AND SOME OTHER SHIT ON HERE
+TRY OUT BROADCASTING AN ADHOC NETWORK
+dtoverlay=spi1-3cs
