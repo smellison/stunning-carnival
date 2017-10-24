@@ -9,53 +9,60 @@
 
 #define CHANNEL 0
 
+uint8_t buf[2];
+
+void spi(uint8_t reg, uint8_t val) {
+    buf[0] = reg;
+    buf[1] = val;
+    wiringPiSPIDataRW(CHANNEL, buf, 2);
+    printf(buf);
+    usleep(20);
+}
+
+void shutdown() {
+    spi(0x0C, 0x00);
+}
+
 void main(int argc, char** argv) {
 
         /*
         Digit 0 is selected via 0xX1
         Digit 1 is selected via 0xX2 and so on
         the number 3 is written as 01111001 or 79
- 
+
         TODO test bcd mode just to see if that's somehow functioning?
         */
 
-	/*uint8_t on[] = { 0x01, 0x79 };*/
-        /*uint8_t on[] = { 0xFF, 0xFF };*/
-        uint8_t on[] = { 0x01, 0x03 };
-	uint8_t off[] = { 0xFF, 0x00 };
-	uint8_t buf[2];
-
-	if (wiringPiSPISetup(CHANNEL, 8000000) < 0) {
+	if (wiringPiSPISetup(CHANNEL, 1000000) < 0) {
 		fprintf (stderr, "SPI Setup failed: %s\n", strerror(errno));
 		exit(errno);
 	}
-        
-        uint8_t intensity = { 0x0A, 0x05 };
-        uint8_t scan_limit = { 0x0B, 0x01 }; 
-        uint8_t shutdown = { 0x0C, 0x01 };
-        uint8_t bcd = { 0x09, 0x00 };
 
-        memcpy(buf, bcd, 2);
-        wiringPiSPIDataRW(CHANNEL, buf, 2);
+        /* set bcd */
+        spi(0x09, 0x0F);
 
-        memcpy(buf, scan_limit, 2);
-        wiringPiSPIDataRW(CHANNEL, buf, 2);
+        /* set scan limit */
+        spi(0x0B, 0x01);
 
-        memcpy(buf, intensity, 2);
-        wiringPiSPIDataRW(CHANNEL, buf, 2);
+        /* set intensity */
+        spi(0x0A, 0x0C);
 
-        memcpy(buf, shutdown, 2);
-        wiringPiSPIDataRW(CHANNEL, buf, 2);
+        /* normal operation mode, after setup */
+        spi(0x0C, 0x01);
 
-        memcpy(buf, on, 2);
-        wiringPiSPIDataRW(CHANNEL, buf, 2);
+        /* send some test data */
+        spi(0x01, 0x03);
+
+        sleep(10);
+
+        shutdown();
 /*
 	for (;;) {
-		memcpy(buf, on, 2);
-		wiringPiSPIDataRW(CHANNEL, buf, 2);
+                spi(0xFF, 0xFF);
 		sleep(1);
-		memcpy(buf, off, 2);
-		wiringPiSPIDataRW(CHANNEL, buf, 2);
+                spi(0xFF, 0x00);
 		sleep(0);
 	}*/
 }
+
+
