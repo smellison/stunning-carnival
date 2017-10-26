@@ -7,22 +7,58 @@
 
 #include <wiringPiSPI.h>
 
-#define CHANNEL 0
+#define ZERO 0 // channel zero
+#define ONE 1  // channel one
 
 uint8_t buf[2];
 
-void spi(uint8_t reg, uint8_t val) {
+void spi(int channel, uint8_t reg, uint8_t val) {
     buf[0] = reg;
     buf[1] = val;
-    /*printf("before buf zero %x\n", buf[0]);*/
-    wiringPiSPIDataRW(CHANNEL, buf, 2);
-    /*printf("buf zero %x\n", buf[0]);*/
-    /*printf("buf one %x\n", buf[1]);*/
-    /*usleep(50);*/
+    wiringPiSPIDataRW(channel, buf, 2);
+}
+
+void bootone() {
+	if (wiringPiSPISetup(ZERO, 1000000) < 0) {
+		fprintf (stderr, "SPI Setup failed: %s\n", strerror(errno));
+		exit(errno);
+	}
+
+        /* set bcd OFF */
+        spi(ZERO, 0x09, 0x00);
+
+        /* set scan limit to one digit for now */
+        spi(ZERO, 0x0B, 0x07);
+
+        /* set intensity */
+        spi(ZERO, 0x0A, 0x0C);
+
+        /* normal operation mode, after setup */
+        spi(ZERO, 0x0C, 0x01);
+}
+
+void boottwo() {
+        if (wiringPiSPISetup(ONE, 1000000) < 0) {
+                fprintf (stderr, "SPI Setup failed: %s\n", strerror(errno));
+                exit(errno);
+        }
+
+        /* set bcd OFF */
+        spi(ONE, 0x09, 0x00);
+
+        /* set scan limit to one digit for now */
+        spi(ONE, 0x0B, 0x07);
+
+        /* set intensity */
+        spi(ONE, 0x0A, 0x0C);
+
+        /* normal operation mode, after setup */
+        spi(ONE, 0x0C, 0x01);
 }
 
 void shutdown() {
-    spi(0x0C, 0x00);
+    spi(ZERO, 0x0C, 0x00);
+    spi(ONE, 0x0C, 0x00);
 }
 
 void main(int argc, char** argv) {
@@ -32,22 +68,8 @@ void main(int argc, char** argv) {
 
         */
 
-	if (wiringPiSPISetup(CHANNEL, 1000000) < 0) {
-		fprintf (stderr, "SPI Setup failed: %s\n", strerror(errno));
-		exit(errno);
-	}
-
-        /* set bcd OFF */
-        spi(0x09, 0x00);
-
-        /* set scan limit to one digit for now */
-        spi(0x0B, 0x07);
-
-        /* set intensity */
-        spi(0x0A, 0x0C);
-
-        /* normal operation mode, after setup */
-        spi(0x0C, 0x01);
+	bootone();
+	boottwo();
 
         usleep(200);
 
@@ -61,24 +83,42 @@ void main(int argc, char** argv) {
 	this is done by cycling through each digit and setting the relevant segment on or off
 	Instead of reading the binary values for each digit horizontally, we must know think of them vertically where we read the bit at position[digit] for each address (segment)
 	 */
-        spi(0x01, 0x60);
-        spi(0x02, 0x60);
-        spi(0x03, 0x60);
-        spi(0x04, 0x60);
-        spi(0x05, 0x60);
-        spi(0x06, 0x60);
-        spi(0x07, 0x60);
-        spi(0x08, 0x60);
-/*
-        spi(0x01, 0x20);
-        spi(0x02, 0x20);
-        spi(0x03, 0x20);
-        spi(0x04, 0x20);
-        spi(0x05, 0x20);
-        spi(0x06, 0x20);
-        spi(0x07, 0x20);
-        spi(0x08, 0x20);
-*/
+
+    for(;;) {
+        /* turn on zero */
+        spi(ZERO, 0x0C, 0x01);
+
+        spi(ZERO, 0x01, 0x60);
+        spi(ZERO, 0x02, 0x60);
+        spi(ZERO, 0x03, 0x60);
+        spi(ZERO, 0x04, 0x60);
+        spi(ZERO, 0x05, 0x60);
+        spi(ZERO, 0x06, 0x60);
+        spi(ZERO, 0x07, 0x60);
+        spi(ZERO, 0x08, 0x60);
+
+	/* shutdown zero */
+        spi(ZERO, 0x0C, 0x00);
+
+        /*usleep(1);*/
+
+        /* turn on one */
+        spi(ONE, 0x0C, 0x01);
+
+        spi(ONE, 0x01, 0x00);
+        spi(ONE, 0x02, 0x00);
+        spi(ONE, 0x03, 0x00);
+        spi(ONE, 0x04, 0x00);
+        spi(ONE, 0x05, 0x40);
+        spi(ONE, 0x06, 0x00);
+        spi(ONE, 0x07, 0x00);
+        spi(ONE, 0x08, 0x00);
+       
+        /* shutdown one */
+        spi(ONE, 0x0C, 0x00);
+
+        /*usleep(1);*/
+    }
 
 }
 
