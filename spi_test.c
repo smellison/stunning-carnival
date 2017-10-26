@@ -14,8 +14,11 @@ uint8_t buf[2];
 void spi(uint8_t reg, uint8_t val) {
     buf[0] = reg;
     buf[1] = val;
+    /*printf("before buf zero %x\n", buf[0]);*/
     wiringPiSPIDataRW(CHANNEL, buf, 2);
-    usleep(20);
+    /*printf("buf zero %x\n", buf[0]);*/
+    /*printf("buf one %x\n", buf[1]);*/
+    usleep(50);
 }
 
 void shutdown() {
@@ -52,18 +55,19 @@ void main(int argc, char** argv) {
         /* normal operation mode, after setup */
         spi(0x0C, 0x01);
 
+        usleep(200);
+
         /* send some test data */
-        /*spi(0x01, 0x03);*/
         spi(0x01, 0x37);
         spi(0x02, 0x30);
 
-        sleep(10);
+        sleep(5);
 
-        /* blank my test data */
-        spi(0x01, 0x00);
-        spi(0x02, 0x00);
+        /* send diff test data */
+        spi(0x01, 0x30);
+        spi(0x02, 0x5B);
 
-        shutdown();
+/*        shutdown();*/
 /*
 	for (;;) {
                 spi(0xFF, 0xFF);
