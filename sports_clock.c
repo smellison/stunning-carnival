@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <ctype.h>
 
-/*#include "stats.h"*/
+#include "stats.h"
 #include <wiringPiSPI.h>
 
 #define ZERO 0 // channel zero
@@ -56,7 +56,7 @@ void bootone() {
 
 }
 
-void shutdown() {
+void shutdown_disp() {
     spi(0x04, 0x00);
 }
 
@@ -214,7 +214,7 @@ void main(int argc, char** argv) {
         Startup the MAX
         */
 	bootone();
-	printf("booted!");
+	/*printf("booted!");*/
 
 	print_seq("hello ");
 
@@ -235,7 +235,7 @@ void main(int argc, char** argv) {
 	/*char *result_clone = "            ";*/
 	int i = 0;
 	while(1) {
-		result = "LADHOU001000"; /*make_request();*/
+		result = make_request(); /*"LADHOU001000";*/
 		char *teams = malloc(6);
 		char *scores = malloc(6);
 		int i;
