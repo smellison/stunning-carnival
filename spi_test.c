@@ -8,14 +8,13 @@
 #include <wiringPiSPI.h>
 
 #define ZERO 0 // channel zero
-#define ONE 1  // channel one
 
 uint8_t buf[2];
 
-void spi(int channel, uint8_t reg, uint8_t val) {
+void spi(uint8_t reg, uint8_t val) {
     buf[0] = reg;
     buf[1] = val;
-    wiringPiSPIDataRW(channel, buf, 2);
+    wiringPiSPIDataRW(ZERO, buf, 2);
 }
 
 void bootone() {
@@ -24,41 +23,48 @@ void bootone() {
 		exit(errno);
 	}
 
-        /* set bcd OFF */
-        spi(ZERO, 0x09, 0x00);
+        /* set decode 11111111 */
+        spi(0x01, 0xFF);
 
-        /* set scan limit to one digit for now */
-        spi(ZERO, 0x0B, 0x07);
+        /* set global intensity to a medium value */
+        spi(0x02, 0x07);
 
-        /* set intensity */
-        spi(ZERO, 0x0A, 0x0C);
+        /* set scan limit to one digit 0x00, six is 0x05 */
+        spi(0x03, 0x00);
 
-        /* normal operation mode, after setup */
-        spi(ZERO, 0x0C, 0x01);
-}
+        /* control register PIRTEBxS
+	P - Blink Phase Readback 0 is p1 blink phase, 1 is p0 blink phase
+	I - Global Intensity, 0 global intensity via one setting, 1 individual intensity settings
+	R - Global Clear Digit Data, 0 digit data for both planes p0 and p1 are unaffected
+	T - Global Blink Timing Synchronization, 0 Blink timing counters are unaffected, 1 counters are reset on rising edge of CS
+	E - Global Blink Enable/Disable, 0 is off, 1 is on
+	B - Blink Rate Selection 0 is 1s/1s, 1 is .5s/.5s duty cycles
+        x - Don't Care Bit
+	S - Shutdown control 0 is shutdown, 1 is normal op
+	00000001 
+	so, just turn it on!
+	*/
+        spi(0x04, 0x01);
 
-void boottwo() {
-        if (wiringPiSPISetup(ONE, 1000000) < 0) {
-                fprintf (stderr, "SPI Setup failed: %s\n", strerror(errno));
-                exit(errno);
-        }
+        /* GPIO data - Do Nothing */
 
-        /* set bcd OFF */
-        spi(ONE, 0x09, 0x00);
+        /* Port Configuration - Do Nothing I guess */
+        /* Display Test, off */
+	spi(0x07, 0x00);
 
-        /* set scan limit to one digit for now */
-        spi(ONE, 0x0B, 0x07);
-
-        /* set intensity */
-        spi(ONE, 0x0A, 0x0C);
-
-        /* normal operation mode, after setup */
-        spi(ONE, 0x0C, 0x01);
+        /* 
+	Everything else:
+	Key masks
+	Digit Type
+	Intesities
+	Digit 0 - 7a 0x60 -> 0x6F
+	Keys Debounced
+	Keys Pressed
+	*/
 }
 
 void shutdown() {
-    spi(ZERO, 0x0C, 0x00);
-    spi(ONE, 0x0C, 0x00);
+    spi(0x04, 0x00);
 }
 
 void main(int argc, char** argv) {
@@ -69,7 +75,6 @@ void main(int argc, char** argv) {
         */
 
 	bootone();
-	boottwo();
 
         usleep(200);
 
@@ -84,41 +89,16 @@ void main(int argc, char** argv) {
 	Instead of reading the binary values for each digit horizontally, we must know think of them vertically where we read the bit at position[digit] for each address (segment)
 	 */
 
-    for(;;) {
-        /* turn on zero */
-        spi(ZERO, 0x0C, 0x01);
+        /* turn on display test */
+        /* spi(0x07, 0x01); */
 
-        spi(ZERO, 0x01, 0x60);
-        spi(ZERO, 0x02, 0x60);
-        spi(ZERO, 0x03, 0x60);
-        spi(ZERO, 0x04, 0x60);
-        spi(ZERO, 0x05, 0x60);
-        spi(ZERO, 0x06, 0x60);
-        spi(ZERO, 0x07, 0x60);
-        spi(ZERO, 0x08, 0x60);
+	/* turn on digit 0, plane p0 with 0100 0010 */
+        spi(0x20,0x42);
 
-	/* shutdown zero */
-        spi(ZERO, 0x0C, 0x00);
+	sleep(2);
 
-        /*usleep(1);*/
-
-        /* turn on one */
-        spi(ONE, 0x0C, 0x01);
-
-        spi(ONE, 0x01, 0x00);
-        spi(ONE, 0x02, 0x00);
-        spi(ONE, 0x03, 0x00);
-        spi(ONE, 0x04, 0x00);
-        spi(ONE, 0x05, 0x40);
-        spi(ONE, 0x06, 0x00);
-        spi(ONE, 0x07, 0x00);
-        spi(ONE, 0x08, 0x00);
-       
-        /* shutdown one */
-        spi(ONE, 0x0C, 0x00);
-
-        /*usleep(1);*/
-    }
+        /* B? */
+	spi(0x20,0x4D);
 
 }
 
