@@ -11,6 +11,8 @@
 #include <openssl/sha.h>
 #include <time.h>
 
+#define h_addr h_addr_list[0]
+
 char *home_team;
 char *away_team;
 char home_score[4];

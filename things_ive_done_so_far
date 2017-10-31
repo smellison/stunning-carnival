@@ -33,3 +33,6 @@ I now have done the wiringPi setup from projects.drogon.net/raspberry-pi/wiringp
 gpio spi load still fails
 
 gcc -o spi_test spi_test.c -lwiringPi
+
+to use andrews work, I had to install libssl-dev via apt-get install
+

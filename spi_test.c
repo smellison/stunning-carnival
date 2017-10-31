@@ -86,10 +86,11 @@ uint8_t get_digit_addr(int current_index) {
 	return addr;
 }
 
-void print_seq(char chr){
-	/* something like a for loop over each character, tracking position to know which char to print */
+/* Expects a character array of exactly 6 characters, extras are ignored */
+void print_seq(char *chars){
 	int index;
-	for(index=0; index < 8; index = index + 1) {
+	for(index=0; index < 6; index = index + 1) {
+		char chr = chars[index];
 		uint8_t addr = get_digit_addr(index);
 		switch(tolower(chr)) {
 			case 'a':
@@ -209,55 +210,16 @@ void print_seq(char chr){
 void main(int argc, char** argv) {
 
         /*
-        Digit 0 is selected via 0xX1
-
+        Startup the MAX
         */
 
 	bootone();
 
-        /* trying to set all segments on for digit 1.
-	for each digit (which is actually now the segment) set it high
-        this makes sense but shows nothing
-	for common cathode, the digit pin must be held high until the digit is active when it goes low
-	so under the normal setup, digit 0 to display all segments would set digit 0 pin to low, and then turn on all segments supplying current. 
-	now we've reversed that, and we connect our segment A to digit 0's anode (which would go high when active as desired)
-        Then each segment is connected to the digits and we must one by one set them to the target value
-	this is done by cycling through each digit and setting the relevant segment on or off
-	Instead of reading the binary values for each digit horizontally, we must know think of them vertically where we read the bit at position[digit] for each address (segment)
-	 */
+	print_seq("helloo");
+	sleep(1);
+	print_seq("sucker");
 
-        /* turn on display test */
-        /*spi(0x07, 0x01); */
-	/*sleep(5);*/
 
-	/* turn on digit 0, plane p0 with 0100 0010 */
-        /*spi(0x20,0x42);*/
-
-	print_seq('a');
-	sleep(1);
-	print_seq('b');
-	sleep(1);
-	print_seq('C');
-	sleep(1);
-	print_seq('X');
-	sleep(1);
-	print_seq('r');
-	sleep(1);
-	print_seq('d');
-	sleep(1);
-	print_seq('e');
-	sleep(1);
-	print_seq('f');
-	sleep(1);
-	print_seq('g');
-	sleep(1);
-	print_seq('h');
-	sleep(1);
-	print_seq('i');
-	sleep(1);
-	print_seq('j');
-	sleep(1);
-	print_seq('k');
 }
 
 
